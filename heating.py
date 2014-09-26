@@ -40,35 +40,15 @@ if __name__ == '__main__':
     import numpy as np
     import pandas as pd
     from simulate_external import simulate_external_temperature
+    from sqlalchemy import create_engine
 
-    
-    print("Defining initial parameters of the simulation.")
-    timezone = 'Europe/Rome'
-    date_start = pd.Timestamp(pd.datetime(2014, 1, 1, 0, 0, 0), tz=timezone)
-    date_end = pd.Timestamp(pd.datetime(2014, 12, 31, 23, 59, 59), tz=timezone)
-    frequency = '10min'
-    print("Timezone: %s" % timezone)
-    print("Start: %s" % date_start)
-    print("End: %s" % date_end)
-    print("Frequency: %s" % frequency)
-
-    print("Generating timestamps.")
-    timestamps = pd.date_range(start=date_start, end=date_end, freq=frequency, tz=timezone)
-
-    print("Computing external temperature...")
-    external_temperature = simulate_external_temperature(timestamps=timestamps)
-    print("Done.")
-
-    # from sqlalchemy import create_engine
-    # engine = create_engine('sqlite:///21at7.sqlite')    
-    # dataset_external_temperature = pd.read_sql_table('temperature_external', engine)
-    # timestamps = dataset_external_temperature.timestamp.values
-    # external_temperature = dataset_external_temperature.external_temperature.values
-
+    engine = create_engine('sqlite:///21at7.sqlite')
+    dataset_external_temperature = pd.read_sql_table('temperature_external', engine)
+    timestamps = dataset_external_temperature['timestamp'].values
+    external_temperature = dataset_external_temperature['external_temperature'].values
     hss = HeatingStandardSchedule()
-    heating = np.array([hss.heating_action(ts, et) for (ts, et) in zip(timestamps, external_temperature)])
+    heating = np.array([hss.heating_action(ts, et) for i, et, ts in dataset_external_temperature.values])
     
-
     plot = True
     if plot:
         print("Plotting.")
