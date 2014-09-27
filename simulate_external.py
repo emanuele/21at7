@@ -2,8 +2,7 @@
 """
 
 import numpy as np
-from datetime import datetime
-from pandas import DateOffset, Timestamp
+from pandas import DateOffset, Timestamp, datetime
 import time
 
 
