@@ -48,14 +48,16 @@ if __name__ == '__main__':
     import pandas as pd
     from simulate_external import simulate_external_temperature
     from sqlalchemy import create_engine
-
+    from sqlalchemy.exc import OperationalError
+    
     engine = create_engine('sqlite:///21at7.sqlite')
     dataset_external_temperature = pd.read_sql_table('temperature_external', engine)[:100]
     timestamps = dataset_external_temperature['timestamp'].values
     external_temperature = dataset_external_temperature['external_temperature'].values
     try:
         pd.io.sql.execute("drop table heating", con=engine)
-    except OperationalError: # in case table 'heating' does not exist
+    except OperationalError:
+        print("Table 'heating' does not exist.")
         pass
     
     hss = HeatingStandardSchedule(engine=engine)
