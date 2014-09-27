@@ -2,7 +2,7 @@ from heating import HeatingStandardSchedule
 import numpy as np
 import pandas as pd
 from simulate_external import simulate_external_temperature
-from simulate_home import home_heater_temperature
+from simulate_home import HomeTemperature
 from sqlalchemy import create_engine
 from sqlalchemy.exc import OperationalError
 
@@ -36,6 +36,7 @@ if __name__ == '__main__':
         pass
     
     hss = HeatingStandardSchedule(engine=engine)
+    ht = HomeTemperature(T_heating, k_home_external, k_heater_on, k_heater_off, k_home_heater, t_step, engine=engine)
     heating = np.zeros(dataset_external_temperature.shape[0])
     T_home = np.zeros(dataset_external_temperature.shape[0])
     T_heater = np.zeros(dataset_external_temperature.shape[0])
@@ -44,7 +45,7 @@ if __name__ == '__main__':
     for idx, (i, ex, ts) in enumerate(dataset_external_temperature.values[:-1]):
         if (idx % 20) == 0: print(idx)
         heating[idx] = hss.heating_action(ts, T_home[idx])
-        T_home[idx + 1], T_heater[idx + 1] = home_heater_temperature(T_home[idx], ex, T_heater[idx], heating[idx], T_heating, k_home_external, k_heater_on, k_heater_off, k_home_heater, t_step)
+        T_home[idx + 1], T_heater[idx + 1] = ht.home_heater_temperature(T_home[idx], ex, T_heater[idx], heating[idx], ts)
 
     
     plot = True
