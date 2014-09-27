@@ -1,6 +1,6 @@
 """Heating schedules.
 """
-
+import pandas as pd
 
 class HeatingStandardSchedule(object):
     """This is the standard (naive) heating schedule most of people
