@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 from simulate_external import simulate_external_temperature
 from sqlalchemy import create_engine
-from configuration import engine_string
+from configuration import date_start, date_end, frequency, engine_string
 
 
 if __name__ == '__main__':
@@ -11,9 +11,6 @@ if __name__ == '__main__':
 
     print("21at7: simulation of the external temperature.")
     print("Defining initial parameters of the simulation.")
-    date_start = pd.datetime(2014, 1, 1, 0, 0, 0)
-    date_end = pd.datetime(2014, 12, 31, 23, 59, 59)
-    frequency = '10min'
     print("Start: %s" % date_start)
     print("End: %s" % date_end)
     print("Frequency: %s" % frequency)
@@ -32,7 +29,7 @@ if __name__ == '__main__':
 
     engine = create_engine(engine_string)
     print("Saving DataFrame to the database: %s" % engine)
-    dataset_external_temperature.to_sql('temperature_external', engine, if_exists='replace')
+    dataset_external_temperature.to_sql('temperature_external', engine, if_exists='replace', index=False)
     print("Done.")
 
     plot = True

@@ -1,5 +1,11 @@
 """Constants and parameters for simulation.
 """
+import pandas as pd
+
+# Global parameters for the simulation:
+date_start = pd.datetime(2014, 1, 1, 0, 0, 0)
+date_end = pd.datetime(2014, 12, 31, 23, 59, 59)
+frequency = '10min'
 
 engine_string = 'sqlite:///21at7.sqlite'
 # engine_string = 'sqlite:////run/21at7/21at7.sqlite'
@@ -12,3 +18,6 @@ k_heater_off = 1.0 / 1200.0 # how fast heater temperature changes when heating i
 
 T_heating = 50.0 # temperature of the heating system, i.e. of the hot water produced
 T0_home = 20.0 # initial house temperature # initial house temperature at time 0.
+
+
+# Parameters for prediction and optimization:
