@@ -17,7 +17,7 @@ class Desiderata(object):
         
         if self.engine is not None:
             print("Storing desiderata into %s" % self.engine)
-            self.desire.to_sql('desiderata', self.engine, if_exists='replace', index=True)
+            self.desire.to_sql('desiderata', self.engine, if_exists='replace', index=False)
 
 
     def get_desiderata(self):
@@ -43,7 +43,7 @@ if __name__ == '__main__':
     desire = desiderata.get_desiderata()
     print(desire)
 
-
+    # Old Attempts
     # # desire: start, stop and temperature:
     # desire = [(datetime.time(6,45,0), datetime.time(8,0,0), 22.0),
     #           (datetime.time(17,30,0), datetime.time(23,30,0), 22.0)]
