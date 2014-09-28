@@ -42,3 +42,15 @@ class HeatingStandardSchedule(object):
         
 
 
+class HeatingOptimizedSchedule(object):
+    """This is the heating schedule based on prediction and
+    optimization.
+    """
+    def __init__(self, engine):
+        self.engine = engine
+
+    def heating_action(self, my_datetime):
+        """Retrieve external and home temperatures from recent past as
+        well as recent heating schedule. Then predict and optimize the
+        future schedule according to desiderata.
+        """
