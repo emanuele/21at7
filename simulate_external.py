@@ -59,15 +59,13 @@ def simulate_external_temperature(timestamps, year_min_min=-5.0, year_min_max=14
         amplitude of the autocorrelated noise in the simulation
     """
     t_step_sec = timestamps.freq.nanos / 1e9
-    daily_max_max = Timestamp(date_daily_max_max, tz=timestamps.tz)
-    seasonal_max_max = Timestamp(date_seasonal_max_max, tz=timestamps.tz)
     
     noise_daily = autocorrelated_noise(timestamps.size, window_size_timepoints=max([2, np.int(noise_daily_window / t_step_sec)]))
     noise_seasonal = autocorrelated_noise(timestamps.size, window_size_timepoints=max([2, np.int(noise_seasonal_window / t_step_sec)]))
 
-    tmp = np.array([(ts - daily_max_max).total_seconds() for ts in timestamps])
+    tmp = np.array([(ts - date_daily_max_max).total_seconds() for ts in timestamps])
     daily_variation = np.cos(tmp * np.pi * 2.0 / 86400.0) + noise_daily * noise_sigma
-    tmp = np.array([(ts - seasonal_max_max).total_seconds() for ts in timestamps])
+    tmp = np.array([(ts - date_seasonal_max_max).total_seconds() for ts in timestamps])
     seasonal_variation = np.cos(tmp * np.pi * 2.0 / 86400.0 / 365.25) + noise_seasonal * noise_sigma
     temperature_min = (seasonal_variation + 1.0) / 2.0 * (year_min_max - year_min_min) + year_min_min
     temperature_max = (seasonal_variation + 1.0) / 2.0 * (year_max_max - year_max_min) + year_max_min
