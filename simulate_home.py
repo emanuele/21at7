@@ -38,9 +38,9 @@ class HomeTemperature(object):
 
         if self.engine is not None:
             df = pd.DataFrame({'timestamp': [my_datetime],
-                               'heating': [T_home_next],
+                               'home_temperature': [T_home_next],
                                })
-            df.to_sql('temperature_home', self.engine, if_exists='append')
+            df.to_sql('temperature_home', self.engine, if_exists='append', index=False)
 
         return T_home_next, T_heater_next
 
