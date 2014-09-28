@@ -36,7 +36,7 @@ class HeatingStandardSchedule(object):
             df = pd.DataFrame({'timestamp': [my_datetime],
                                'heating': [self.heating],
                                })
-            df.to_sql('heating', self.engine, if_exists='append')
+            df.to_sql('heating', self.engine, if_exists='append', index=False)
 
         return self.heating
         
@@ -48,9 +48,50 @@ class HeatingOptimizedSchedule(object):
     """
     def __init__(self, engine):
         self.engine = engine
+        self.limit = 100
+        self.regs = None
+        
 
     def heating_action(self, my_datetime):
         """Retrieve external and home temperatures from recent past as
         well as recent heating schedule. Then predict and optimize the
         future schedule according to desiderata.
         """
+        # If there are enough data in general and enough data from previous training, do training:
+        count = pd.read_sql_query("select timestamp ,count(*) from heating where timestamp <= '%s'" % my_datetime, engine)['count(*)'].values[0]
+        if count > 100 and count_from_last_training > 100:
+            # Training:
+            # 1) Retrieve external temperature from recent past:
+            temperature_external = pd.read_sql_query("select timestamp, external_temperature from temperature_external where timestamp <= '%s' order by timestamp desc limit %d" % (my_datetime, self.limit), self.engine)
+            # 2) Retrieve home temperature from recent past:
+            temperature_home = pd.read_sql_query("select timestamp, home_temperature from temperature_home where timestamp <= '%s' order by timestamp desc limit %d" % (my_datetime, self.limit), self.engine)
+            # 3) Check that records of 1 and 2 approximately match on timestamps.
+            # TODO
+            # 4) Retrieve heating schedule from recent past:
+            heating = pd.read_sql_query("select timestamp, heating from heating where timestamp <= '%s' order by timestamp desc limit %d" % (my_datetime, self.limit), self.engine)
+            # 5) Check that records of 1 and 2 and 4 approximately match on timestamps.
+            # TODO
+            # 6) Build trainset using a concatenation of windowed [external, home, heating]:
+            # TODO
+            # 7) create home temperature vector to be predicted
+            # TODO
+            # 8) online training of SGDRegressor for each future timepoint
+            # TODO
+            # 9) save trained model in db
+            # TODO
+
+            # Retrieve last trained regs.
+            # Create x of my_datetime.
+            # Optimize future heating using regs.
+            # Save optimized future heating and predicted home temperature in db
+            # return next heating action from the optimized heating.
+            
+            pass
+
+
+
+if __name__ == '__main__':
+
+    my_datetime = pd.datetime(2014,1,2,9,10)
+    my_datetime = pd.datetime(2014,1,1,9,10)
+    
