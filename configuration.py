@@ -1,10 +1,12 @@
 """Constants and parameters for simulation.
 """
 from datetime import datetime, timedelta
+import pytz
 
 # Global parameters for the simulation:
-date_start = datetime(2014, 1, 1, 0, 0, 0)
-date_end = datetime(2014, 12, 31, 23, 59, 59)
+timezone = pytz.timezone('Europe/Rome')
+date_start = timezone.localize(datetime(2014, 1, 1, 0, 0, 0, ))
+date_end = timezone.localize(datetime(2014, 12, 31, 23, 59, 59))
 time_step = timedelta(minutes=10)
 
 engine_string = 'sqlite:///21at7.sqlite'

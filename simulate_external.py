@@ -4,6 +4,7 @@
 import numpy as np
 from datetime import datetime, timedelta
 import time
+from configuration import timezone
 
 
 def autocorrelated_noise(n_timepoints, window_size_timepoints=100):
@@ -59,6 +60,8 @@ def simulate_external_temperature(timestamps, time_step=None, year_min_min=-5.0,
         amplitude of the autocorrelated noise in the simulation
     """
     if time_step is None: time_step = timedelta(seconds = np.mean([dts.seconds for dts in np.diff(timestamps)]))
+    date_daily_max_max = timezone.localize(date_daily_max_max)
+    date_seasonal_max_max = timezone.localize(date_seasonal_max_max)
     t_step_sec = time_step.seconds
     noise_daily = autocorrelated_noise(timestamps.size, window_size_timepoints=max([2, np.int(noise_daily_window / t_step_sec)]))
     noise_seasonal = autocorrelated_noise(timestamps.size, window_size_timepoints=max([2, np.int(noise_seasonal_window / t_step_sec)]))

@@ -5,6 +5,7 @@ from simulate_external import simulate_external_temperature
 from simulate_home import HomeTemperature
 from sqlalchemy import create_engine
 from sqlalchemy.exc import OperationalError
+from configuration import time_step
 
 
 if __name__ == '__main__':
@@ -17,8 +18,8 @@ if __name__ == '__main__':
     limit = 200
     print("Limiting the records to the first %d." % limit)
     dataset_external_temperature = pd.read_sql_table('temperature_external', engine)[:limit]
-    timestamps = dataset_external_temperature['timestamp'].values
-    t_step = float(np.diff(timestamps).mean()) / 1.0e9 # differences between timestamps are originally in nanoseconds, but we want seconds
+    timestamps = np.array([np.datetime64(ts) for ts in dataset_external_temperature['timestamp'].values])
+    t_step = time_step.seconds
     external_temperature = dataset_external_temperature['external_temperature'].values
 
     try:
@@ -45,6 +46,7 @@ if __name__ == '__main__':
     T_heater[0] = T0_home
     for idx, (ex, ts) in enumerate(dataset_external_temperature.values[:-1]):
         if (idx % 20) == 0: print("%d) %s" % (idx, ts))
+        ts = np.datetime64(ts).astype(object) # this transform string into datetime64 first and datetime.datetime then.
         heating[idx] = hss.heating_action(ts, T_home[idx])
         T_home[idx + 1], T_heater[idx + 1] = ht.home_heater_temperature(T_home[idx], ex, T_heater[idx], heating[idx], ts)
 
@@ -56,8 +58,8 @@ if __name__ == '__main__':
         import matplotlib.pyplot as plt
         plt.interactive(True)
         plt.figure()
-        plt.plot(timestamps, heating * T_heating, 'k-', label='heating')
-        plt.plot(timestamps, external_temperature, 'r-', label='external')
-        plt.plot(timestamps, T_heater, 'g-', label='heater')
-        plt.plot(timestamps, T_home, 'b-', label='home')
+        plt.plot(timestamps.astype(object), heating * T_heating, 'k-', label='heating')
+        plt.plot(timestamps.astype(object), external_temperature, 'r-', label='external')
+        plt.plot(timestamps.astype(object), T_heater, 'g-', label='heater')
+        plt.plot(timestamps.astype(object), T_home, 'b-', label='home')
         plt.legend()
