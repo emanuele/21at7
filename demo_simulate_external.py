@@ -2,7 +2,8 @@ import numpy as np
 import pandas as pd
 from simulate_external import simulate_external_temperature
 from sqlalchemy import create_engine
-from configuration import date_start, date_end, frequency, engine_string
+from configuration import date_start, date_end, time_step, engine_string
+from datetime import datetime, timedelta
 
 
 if __name__ == '__main__':
@@ -13,13 +14,13 @@ if __name__ == '__main__':
     print("Defining initial parameters of the simulation.")
     print("Start: %s" % date_start)
     print("End: %s" % date_end)
-    print("Frequency: %s" % frequency)
+    print("time_step: %s" % time_step)
 
     print("Generating timestamps.")
-    timestamps = pd.date_range(start=date_start, end=date_end, freq=frequency)
+    timestamps = np.array([date_start + i * time_step for i in range(int(round((date_end - date_start).total_seconds() / time_step.total_seconds())))])
     
     print("Computing external temperature...")
-    external_temperature = simulate_external_temperature(timestamps=timestamps)
+    external_temperature = simulate_external_temperature(timestamps=timestamps, time_step=time_step)
     print("Done.")
 
     print("Creating DataFrame.")

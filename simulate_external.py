@@ -2,7 +2,7 @@
 """
 
 import numpy as np
-from pandas import DateOffset, datetime
+from datetime import datetime, timedelta
 import time
 
 
@@ -29,7 +29,7 @@ def autocorrelated_noise(n_timepoints, window_size_timepoints=100):
     return noise
 
 
-def simulate_external_temperature(timestamps, year_min_min=-5.0, year_min_max=14.0, year_max_min=10.0, year_max_max=32.0, date_daily_max_max=datetime(2014,1,1,13,0), date_seasonal_max_max=datetime(2014,8,1,13,0), noise_daily_window=3600 * 6.0, noise_seasonal_window=86400 * 30.0, noise_sigma=1.0):
+def simulate_external_temperature(timestamps, time_step=None, year_min_min=-5.0, year_min_max=14.0, year_max_min=10.0, year_max_max=32.0, date_daily_max_max=datetime(2014,1,1,13,0), date_seasonal_max_max=datetime(2014,8,1,13,0), noise_daily_window=3600 * 6.0, noise_seasonal_window=86400 * 30.0, noise_sigma=1.0):
     """
     This function simulates the external temperature as the sum of a
     seasonal periodict effect, a daily periodic effect and
@@ -58,8 +58,8 @@ def simulate_external_temperature(timestamps, year_min_min=-5.0, year_min_max=14
     noise_sigma : float
         amplitude of the autocorrelated noise in the simulation
     """
-    t_step_sec = timestamps.freq.nanos / 1e9
-    
+    if time_step is None: time_step = timedelta(seconds = np.mean([dts.seconds for dts in np.diff(timestamps)]))
+    t_step_sec = time_step.seconds
     noise_daily = autocorrelated_noise(timestamps.size, window_size_timepoints=max([2, np.int(noise_daily_window / t_step_sec)]))
     noise_seasonal = autocorrelated_noise(timestamps.size, window_size_timepoints=max([2, np.int(noise_seasonal_window / t_step_sec)]))
 

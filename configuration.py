@@ -1,11 +1,11 @@
 """Constants and parameters for simulation.
 """
-import pandas as pd
+from datetime import datetime, timedelta
 
 # Global parameters for the simulation:
-date_start = pd.datetime(2014, 1, 1, 0, 0, 0)
-date_end = pd.datetime(2014, 12, 31, 23, 59, 59)
-frequency = '10min'
+date_start = datetime(2014, 1, 1, 0, 0, 0)
+date_end = datetime(2014, 12, 31, 23, 59, 59)
+time_step = timedelta(minutes=10)
 
 engine_string = 'sqlite:///21at7.sqlite'
 # engine_string = 'sqlite:////run/21at7/21at7.sqlite'
