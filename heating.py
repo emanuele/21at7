@@ -46,10 +46,50 @@ class HeatingOptimizedSchedule(object):
     """This is the heating schedule based on prediction and
     optimization.
     """
-    def __init__(self, engine):
-        self.engine = engine
+    def __init__(self, min_examples=100, retrain_every=100, window_regression=100, engine=None):
+        """
+        TODO
+        
+        window_regression : int
+            The window size of the variable used for regression, in
+            timesteps
+        """
         self.limit = 100
+        self.min_examples = min_examples
+        self.retrain_every = retrain_every
+        self.window_regression = window_regression 
+        if engine is None:
+            print("In order to instantiate HeatingOptimizedSchedule you need to provide a db (engine).")
+            
+        self.engine = engine
         self.regs = None
+
+
+    def create_dataset(self, variable, how_far_in_future, step_within=1, step_between=1, use_future=False):
+        """Given the timecourse of a variable, the window-size for
+        regression and how many timesteps you want to predict in future,
+        this function creates a dataset by stacking overlapping segments
+        of the variable in order to create the vectorial description of
+        the examples, one per timestep.
+
+        Parameters
+        ----------
+        variable : iterable of float
+            The timecourse of a variable
+        how_far_in_future : int
+            how many timesteps ahead in future you want to predict.
+        step_within : int
+            Distance in timesteps between successive values within the
+            window of regression
+        step_between : int
+            Distance in time between successive examples
+        """
+        if use_future:
+            return np.vstack([variable[i : i+self.window_regression+self.how_far_in_future : step_within] for i in range(0, variable.size - self.window_regression - self.how_far_in_future, step_between)])
+        else:
+            return np.vstack([variable[i : i+self.window_regression : step_within] for i in range(0, variable.size - self.window_regression - self.how_far_in_future, step_between)])
+
+
         
 
     def heating_action(self, my_datetime):
@@ -58,8 +98,9 @@ class HeatingOptimizedSchedule(object):
         future schedule according to desiderata.
         """
         # If there are enough data in general and enough data from previous training, do training:
-        count = pd.read_sql_query("select timestamp ,count(*) from heating where timestamp <= '%s'" % my_datetime, engine)['count(*)'].values[0]
-        if count > 100 and count_from_last_training > 100:
+        count = pd.read_sql_query("select timestamp ,count(*) from heating where timestamp <= '%s'" % my_datetime, self.engine)['count(*)'].values[0]
+        count_from_last_training = 110 # TODO
+        if count > self.min_examples and count_from_last_training > self.retrain_every:
             # Training:
             # 1) Retrieve external temperature from recent past:
             temperature_external = pd.read_sql_query("select timestamp, external_temperature from temperature_external where timestamp <= '%s' order by timestamp desc limit %d" % (my_datetime, self.limit), self.engine)
@@ -67,12 +108,16 @@ class HeatingOptimizedSchedule(object):
             temperature_home = pd.read_sql_query("select timestamp, home_temperature from temperature_home where timestamp <= '%s' order by timestamp desc limit %d" % (my_datetime, self.limit), self.engine)
             # 3) Check that records of 1 and 2 approximately match on timestamps.
             # TODO
+            assert(len(temperature_home) == len(temperature_external))
             # 4) Retrieve heating schedule from recent past:
             heating = pd.read_sql_query("select timestamp, heating from heating where timestamp <= '%s' order by timestamp desc limit %d" % (my_datetime, self.limit), self.engine)
             # 5) Check that records of 1 and 2 and 4 approximately match on timestamps.
             # TODO
+            assert(len(temperature_home) == len(heating))
             # 6) Build trainset using a concatenation of windowed [external, home, heating]:
-            # TODO
+            dataset_external = np.hstack([self.create_dataset(temperature_external, how_far_in_future=1),
+                                          self.create_dataset(temperature_home, how_far_in_future=1),
+                                          self.create_dataset(heating, how_far_in_future=1)])
             # 7) create home temperature vector to be predicted
             # TODO
             # 8) online training of SGDRegressor for each future timepoint
