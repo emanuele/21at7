@@ -1,4 +1,4 @@
-from heating import HeatingStandardSchedule
+from heating import HeatingStandardSchedule, HeatingOptimizedSchedule
 import numpy as np
 import pandas as pd
 from simulate_external import simulate_external_temperature
