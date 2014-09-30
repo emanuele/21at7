@@ -28,11 +28,33 @@ class Desiderata(object):
         return self.desire
 
 
+    def create_vector(self, desire, my_datetime, n_steps, time_step, T_warning):
+        """Create a vector representation of desire starting form
+        my_datetime with n_steps values, one every time_step.
+
+        This function is helpful to convert a desire in a vector for
+        the optimization step.
+        """
+        my_datetime = my_datetime.astype(object) # this transform string into datetime64 first and datetime.datetime then
+        time_vector = np.array([my_datetime + i * time_step for i in range(n_steps)])
+        desire_vector = np.ones(n_steps) * T_warning
+        for row in range(desire.shape[0]):
+            desire_start = datetime.time(desire.start_hour[row], desire.start_minute[row])
+            desire_stop = datetime.time(desire.stop_hour[row], desire.stop_minute[row])
+            for i, tv in enumerate(time_vector):
+                tv_time = datetime.time(tv.hour, tv.minute)
+                if tv_time >= desire_start and tv_time <= desire_stop:
+                    desire_vector[i] = desire.temperature[row]
+
+        return desire_vector
+
+
+
 if __name__ == '__main__':
 
-    desire = [(6, 45, 8, 0, 22.0),
-              (17, 30, 23, 30, 22.0)]
-    tmp = dict(zip(('start_hour', 'start_min', 'stop_hour', 'stop_min', 'temperature'), zip(*desire)))
+    desire = [(7, 0, 8, 0, 21.0),
+              (17, 30, 23, 30, 21.0)]
+    tmp = dict(zip(('start_hour', 'start_minute', 'stop_hour', 'stop_minute', 'temperature'), zip(*desire)))
     desire = pd.DataFrame(tmp)
     print(desire)
 
