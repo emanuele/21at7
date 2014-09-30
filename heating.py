@@ -91,7 +91,7 @@ class HeatingOptimizedSchedule(object):
     """This is the heating schedule based on prediction and
     optimization.
     """
-    def __init__(self, min_examples=100, retrain_every=100, window_regression=100, future_steps=24, time_step=None, T_warning=None, engine=None):
+    def __init__(self, min_examples=100, retrain_every=100, window_regression=20, future_steps=24, time_step=None, T_warning=None, engine=None):
         """
         TODO
         
@@ -99,11 +99,13 @@ class HeatingOptimizedSchedule(object):
             The window size of the variable used for regression, in
             timesteps
         """
-        self.limit = 100
+        self.limit = 120
         self.min_examples = min_examples
         self.retrain_every = retrain_every
         self.window_regression = window_regression
         self.future_steps = future_steps
+        self.time_step = time_step
+        self.T_warning = T_warning
         if engine is None:
             print("In order to instantiate HeatingOptimizedSchedule you need to provide a db (engine).")
             raise Exception
@@ -138,7 +140,7 @@ class HeatingOptimizedSchedule(object):
             return np.vstack([variable[i : (i + self.window_regression) : step_within] for i in range(0, (variable.size - self.window_regression - how_far_in_future), step_between)])
 
 
-    def create_recent_dataset(self, my_datetime, how_many, how_far_in_future):
+    def create_recent_dataset(self, my_datetime, how_many, how_far_in_future, normalize=True):
         # 1) Retrieve external temperature from recent past:
         temperature_external = pd.read_sql_query("select timestamp, external_temperature from temperature_external where timestamp <= '%s' order by timestamp desc limit %d" % (my_datetime, how_many), self.engine).external_temperature.values
         # 2) Retrieve home temperature from recent past:
@@ -155,6 +157,11 @@ class HeatingOptimizedSchedule(object):
         X = np.hstack([self.create_dataset(temperature_external, how_far_in_future = how_far_in_future),
                        self.create_dataset(temperature_home, how_far_in_future = how_far_in_future),
                        self.create_dataset(heating, how_far_in_future = how_far_in_future)])
+
+        if normalize: # normalize temperatures only
+            Xt = X[:, :-self.window_regression]
+            X = np.hstack([np.nan_to_num((Xt - Xt.mean(0)) / Xt.std(0)), X[:, -self.window_regression:]])
+
         return X
         
 
@@ -166,7 +173,7 @@ class HeatingOptimizedSchedule(object):
         # If there are enough data in general and enough data from previous training, do training:
         count = pd.read_sql_query("select timestamp ,count(*) from temperature_external where timestamp <= '%s'" % my_datetime, self.engine)['count(*)'].values[0]
         if count > self.min_examples:
-            if (count % self.retrain_every) == 0: # (Re)train models
+            if (count % self.retrain_every) == 0 or np.any([reg.coef_ is None for reg in self.regs]): # (Re)train models
                 # Training:
                 # # 1) Retrieve external temperature from recent past:
                 # temperature_external = pd.read_sql_query("select timestamp, external_temperature from temperature_external where timestamp <= '%s' order by timestamp desc limit %d" % (my_datetime, self.limit), self.engine).external_temperature.values
@@ -186,13 +193,15 @@ class HeatingOptimizedSchedule(object):
                 #                self.create_dataset(heating, how_far_in_future = self.future_steps)])
 
                 X = self.create_recent_dataset(my_datetime, how_many=self.limit, how_far_in_future=self.future_steps)
-
                 # 7) create home temperature vectors to be predicted
-                ys = self.create_dataset(temperature_home, how_far_in_future=0)
+                tmp = self.window_regression
+                self.window_regression = self.future_steps
+                ys = self.create_dataset(temperature_home, how_far_in_future=0)[tmp:,:]
+                self.window_regression = tmp
                 # 8) online training of SGDRegressors for each future timepoint
                 for i in range(self.future_steps):
-                    self.regs[j].fit(X, ys[:,i])
-                    self.regs[j].warm_start = True # This is ESSENTIAL to keep memory of past data in current models
+                    self.regs[i].fit(X, ys[:,i])
+                    self.regs[i].warm_start = True # This is ESSENTIAL to keep memory of past data in current models
                 # 9) save trained model in db
                 # TODO
 
@@ -219,8 +228,4 @@ class HeatingOptimizedSchedule(object):
             print("Not enough data to train models.")
             raise Exception
 
-
-if __name__ == '__main__':
-    my_datetime = pd.datetime(2014,1,2,9,10)
-    my_datetime = pd.datetime(2014,1,1,9,10)
     
