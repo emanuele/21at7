@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 import pytz
 
 # Global parameters for the simulation:
-timezone = pytz.timezone('Europe/Rome')
+timezone = pytz.timezone('UTC') # 'Europe/Rome')
 date_start = timezone.localize(datetime(2014, 1, 1, 0, 0, 0, ))
 date_end = timezone.localize(datetime(2014, 12, 31, 23, 59, 59))
 time_step = timedelta(minutes=10)
@@ -20,6 +20,6 @@ k_heater_off = 1.0 / 1200.0 # how fast heater temperature changes when heating i
 
 T_heating = 50.0 # temperature of the heating system, i.e. of the hot water produced
 T0_home = 20.0 # initial house temperature # initial house temperature at time 0.
-
+T_warning = 10.0 # temperature under which the heating should be forced to start.
 
 # Parameters for prediction and optimization:
