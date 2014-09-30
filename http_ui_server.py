@@ -1,0 +1,26 @@
+import bottle
+from bottle import route, run, template, static_file, redirect, request
+
+@route('/static/<filename:path>')
+def send_static(filename):
+	return static_file(filename, root='ui')
+
+@route('/')
+def home():
+	redirect("/static/index.html")
+
+@route('/set')
+def temp_set():
+	saved=False
+	if request.query.temps1 and request.query.temps2:
+		saved=True
+	elif request.query.temps:
+		saved=True
+	return template('{ "done":{{done}} }', done=str(saved).lower())
+
+@route('/get')
+def temp_get():
+	return '18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18'
+
+bottle.debug(True)
+run(host='localhost', port=8080)
