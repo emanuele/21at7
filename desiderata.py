@@ -65,6 +65,18 @@ if __name__ == '__main__':
     desire = desiderata.get_desiderata()
     print(desire)
 
+    print("")
+    print("Testing creation of vectors:")
+    n_steps = 24
+    time_step = timedelta(minutes=10)
+    T_warning = 10.0
+    my_datetime = np.datetime64(u'2014-01-02 06:00:00+00:00')
+    print(my_datetime)
+    print desiderata.create_vector(desire, my_datetime, n_steps, time_step, T_warning)
+    my_datetime = np.datetime64(u'2014-01-02 21:00:00+00:00')
+    print(my_datetime)
+    print desiderata.create_vector(desire, my_datetime, n_steps, time_step, T_warning)
+
     # Old Attempts
     # # desire: start, stop and temperature:
     # desire = [(datetime.time(6,45,0), datetime.time(8,0,0), 22.0),
