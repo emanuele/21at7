@@ -91,7 +91,7 @@ class HeatingOptimizedSchedule(object):
     """This is the heating schedule based on prediction and
     optimization.
     """
-    def __init__(self, min_examples=100, retrain_every=100, window_regression=100, future_steps=24, engine=None):
+    def __init__(self, min_examples=100, retrain_every=100, window_regression=100, future_steps=24, time_step=None, T_warning=None, engine=None):
         """
         TODO
         
@@ -204,7 +204,7 @@ class HeatingOptimizedSchedule(object):
             # Retrieve desiderata from db:
             desire = self.desiderata.get_desiderata()
             # Transform desire into the desired form:
-            
+            desire_vector = self.desiderata.create_vector(desire, my_datetime, self.future_steps, self.time_step, self.T_warning)
             # Create x of my_datetime for prediction:
             x = self.create_recent_dataset(my_datetime, how_many=1, how_far_in_future=0)
             # Optimize future heating using regs:
