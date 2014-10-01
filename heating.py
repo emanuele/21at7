@@ -126,8 +126,14 @@ def create_partial_testset_example_x(temperature_external, temperature_home, hea
     return np.concatenate([temperature_external[-window_regression:], temperature_home[-window_regression:], heating[-window_regression:]])
 
 
-def normalize(X):
-    return np.nan_to_num((X - X.mean(0)) / X.std(0))
+def normalize(X, window_regression):
+    """Normalize the temperature information according to known mean and variances.
+    """
+    X = np.atleast_2d(X)
+    X_external = (X[:, : window_regression] - 3.0) / 6.0
+    X_home = (X[:, window_regression : window_regression + window_regression] - 20.0) / 4.0
+    X_heating = X[:, window_regression + window_regression :] # no normalization, it's binary!
+    return np.hstack([X_external, X_home, X_heating])
 
 
 class HeatingOptimizedSchedule(object):
@@ -142,7 +148,7 @@ class HeatingOptimizedSchedule(object):
             The window size of the variable used for regression, in
             timesteps
         """
-        self.limit = 500
+        self.limit = 1000
         self.min_examples = min_examples
         self.retrain_every = retrain_every
         self.window_regression = window_regression
@@ -188,7 +194,7 @@ class HeatingOptimizedSchedule(object):
                 # Training:
                 temperature_external, temperature_home, heating = self.retrieve_recent_data(my_datetime, limit=self.limit)
                 X, ys = create_X_ys(temperature_external, temperature_home, heating, window_regression=self.window_regression, future_steps=self.future_steps)
-                X = normalize(X)
+                X = normalize(X, self.window_regression) # necessary to avoid "ValueError: floating-point under-/overflow occurred."
                 # 8) online training of SGDRegressors for each future timepoint
                 for i in range(self.future_steps):
                     self.regs[i].fit(X, ys[:,i])
@@ -205,17 +211,22 @@ class HeatingOptimizedSchedule(object):
             desire = self.desiderata.get_desiderata()
             # Transform desire into the desired form:
             desire_vector = self.desiderata.create_vector(desire, my_datetime, self.future_steps, self.time_step, self.T_warning)
+            print("desire_vector: %s" % desire_vector)
             # Create x of my_datetime for prediction:
             if not training:
                 temperature_external, temperature_home, heating = self.retrieve_recent_data(my_datetime, limit=self.window_regression)
             x = create_partial_testset_example_x(temperature_external, temperature_home, heating, self.window_regression)
+            x = normalize(x, self.window_regression).squeeze()
             # Optimize future heating using regs:
-            future_schedule_initial = np.zeros(self.future_steps)
+            future_schedule_initial = np.ones(self.future_steps)
             xopt = fmin_powell(f, x0=future_schedule_initial, args=(desire_vector, self.regs, x), disp=True, full_output=False, maxiter=4, ftol=1.0e-4)
             future_schedule_best = np.round(sigmoid(xopt))
             print("future_schedule_best: %s" % future_schedule_best)
             # Save optimized future heating and predicted home temperature in db:
             # TODO
+            xx = np.concatenate([x, future_schedule_best])
+            temperature_home_future_best = np.array([self.regs[i].predict(xx).squeeze() for i in range(self.future_steps)])
+            print("temperature_home_future_best: %s" % temperature_home_future_best)
             # return next heating action from the optimized heating:
             if self.engine is not None:
                 df = pd.DataFrame({'timestamp': [my_datetime],
@@ -227,6 +238,3 @@ class HeatingOptimizedSchedule(object):
         else:
             print("Not enough data to train models.")
             raise Exception
-
-    
-
