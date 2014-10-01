@@ -16,7 +16,7 @@ if __name__ == '__main__':
     print("21at7: simulation of home temperature given external temperature and heating schedule.")
     engine = create_engine(engine_string)
     print("Loading external temperatures from %s" % engine)
-    limit = 200
+    limit = 2000
     print("Limiting the records to the first %d." % limit)
     dataset_external_temperature = pd.read_sql_table('temperature_external', engine)[:limit]
     # timestamps = np.array([np.datetime64(ts) for ts in dataset_external_temperature['timestamp'].values])
@@ -55,7 +55,7 @@ if __name__ == '__main__':
     T_heater = np.zeros(dataset_external_temperature.shape[0])
     T_home[0] = T0_home
     T_heater[0] = T0_home
-    switch_at = 150
+    switch_at = 1900
     print("Starting with HeatingStandardSchedule:")
     for idx, (ex, ts) in enumerate(dataset_external_temperature.values[:-1][:switch_at]):
         if (idx % 20) == 0: print("%d) %s" % (idx, ts))
