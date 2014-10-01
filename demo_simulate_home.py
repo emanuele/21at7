@@ -5,7 +5,8 @@ from simulate_external import simulate_external_temperature
 from simulate_home import HomeTemperature
 from sqlalchemy import create_engine
 from sqlalchemy.exc import OperationalError
-from configuration import time_step
+from configuration import time_step, T_warning
+from desiderata import Desiderata
 
 
 if __name__ == '__main__':
@@ -15,10 +16,11 @@ if __name__ == '__main__':
     print("21at7: simulation of home temperature given external temperature and heating schedule.")
     engine = create_engine(engine_string)
     print("Loading external temperatures from %s" % engine)
-    limit = 200
+    limit = 2000
     print("Limiting the records to the first %d." % limit)
     dataset_external_temperature = pd.read_sql_table('temperature_external', engine)[:limit]
-    timestamps = np.array([np.datetime64(ts) for ts in dataset_external_temperature['timestamp'].values])
+    # timestamps = np.array([np.datetime64(ts) for ts in dataset_external_temperature['timestamp'].values])
+    timestamps = dataset_external_temperature['timestamp'].values
     t_step = time_step.seconds
     external_temperature = dataset_external_temperature['external_temperature'].values
 
@@ -36,19 +38,40 @@ if __name__ == '__main__':
         print("Table 'heating' does not exist.")
         pass
 
+    print("Desiderata...")
+    desire = [(7, 0, 8, 0, 21.0),
+              (17, 30, 23, 30, 21.0)]
+    tmp = dict(zip(('start_hour', 'start_minute', 'stop_hour', 'stop_minute', 'temperature'), zip(*desire)))
+    desire = pd.DataFrame(tmp)
+    print(desire)
+    desiderata = Desiderata(desire, engine)
+
     print("Starting the simulation.")
     hss = HeatingStandardSchedule(engine=engine)
+    hos = HeatingOptimizedSchedule(time_step=time_step, T_warning=T_warning, engine=engine)
     ht = HomeTemperature(T_heating, k_home_external, k_heater_on, k_heater_off, k_home_heater, t_step, engine=engine)
     heating = np.zeros(dataset_external_temperature.shape[0])
     T_home = np.zeros(dataset_external_temperature.shape[0])
     T_heater = np.zeros(dataset_external_temperature.shape[0])
     T_home[0] = T0_home
     T_heater[0] = T0_home
-    for idx, (ex, ts) in enumerate(dataset_external_temperature.values[:-1]):
+    switch_at = 1900
+    print("Starting with HeatingStandardSchedule:")
+    for idx, (ex, ts) in enumerate(dataset_external_temperature.values[:-1][:switch_at]):
         if (idx % 20) == 0: print("%d) %s" % (idx, ts))
         ts = np.datetime64(ts).astype(object) # this transform string into datetime64 first and datetime.datetime then.
         heating[idx] = hss.heating_action(ts, T_home[idx])
         T_home[idx + 1], T_heater[idx + 1] = ht.home_heater_temperature(T_home[idx], ex, T_heater[idx], heating[idx], ts)
+
+    print("Switching to HeatingOptimizedSchedule:")
+    for i, (ex, ts) in enumerate(dataset_external_temperature.values[:-1][switch_at:]):
+        idx = i + switch_at
+        # if (idx % 20) == 0: print("%d) %s" % (idx, ts))
+        print("%d) %s" % (idx, ts))
+        # ts = np.datetime64(ts)
+        heating[idx] = hos.heating_action(ts)
+        T_home[idx + 1], T_heater[idx + 1] = ht.home_heater_temperature(T_home[idx], ex, T_heater[idx], heating[idx], ts)
+
 
     print("End of the simulation.")
     
@@ -56,6 +79,7 @@ if __name__ == '__main__':
     if plot:
         print("Plotting.")
         import matplotlib.pyplot as plt
+        timestamps = np.array([np.datetime64(ts) for ts in dataset_external_temperature['timestamp'].values])
         plt.interactive(True)
         plt.figure()
         plt.plot(timestamps.astype(object), heating * T_heating, 'k-', label='heating')

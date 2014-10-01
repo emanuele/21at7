@@ -35,6 +35,7 @@ class Desiderata(object):
         This function is helpful to convert a desire in a vector for
         the optimization step.
         """
+        if type(my_datetime) == type(u''): my_datetime = np.datetime64(my_datetime)
         my_datetime = my_datetime.astype(object) # this transform string into datetime64 first and datetime.datetime then
         time_vector = np.array([my_datetime + i * time_step for i in range(n_steps)])
         desire_vector = np.ones(n_steps) * T_warning
@@ -64,6 +65,18 @@ if __name__ == '__main__':
     desiderata = Desiderata(desire, engine)
     desire = desiderata.get_desiderata()
     print(desire)
+
+    print("")
+    print("Testing creation of vectors:")
+    n_steps = 24
+    time_step = timedelta(minutes=10)
+    T_warning = 10.0
+    my_datetime = np.datetime64(u'2014-01-02 06:00:00+00:00')
+    print(my_datetime)
+    print desiderata.create_vector(desire, my_datetime, n_steps, time_step, T_warning)
+    my_datetime = np.datetime64(u'2014-01-02 21:00:00+00:00')
+    print(my_datetime)
+    print desiderata.create_vector(desire, my_datetime, n_steps, time_step, T_warning)
 
     # Old Attempts
     # # desire: start, stop and temperature:
