@@ -140,7 +140,7 @@ class HeatingOptimizedSchedule(object):
             return np.vstack([variable[i : (i + self.window_regression) : step_within] for i in range(0, (variable.size - self.window_regression - how_far_in_future), step_between)])
 
 
-    def create_recent_dataset(self, my_datetime, how_many, how_far_in_future, normalize=True):
+    def retrieve_recent_data(self, my_datetime, how_many):
         # 1) Retrieve external temperature from recent past:
         temperature_external = pd.read_sql_query("select timestamp, external_temperature from temperature_external where timestamp <= '%s' order by timestamp desc limit %d" % (my_datetime, how_many), self.engine).external_temperature.values
         # 2) Retrieve home temperature from recent past:
@@ -153,7 +153,12 @@ class HeatingOptimizedSchedule(object):
         # 5) Check that records of 1 and 2 and 4 approximately match on timestamps.
         # TODO
         assert(len(temperature_home) == len(heating))
-        # 6) Build trainset using a concatenation of windowed variables: [external, home, heating]:
+        return temperature_external, temperature_home, heating
+
+
+    def create_recent_dataset(self, my_datetime, how_many, how_far_in_future, normalize=True):
+        temperature_external, temperature_home, heating = self.retrieve_recent_data(my_datetime, how_many)
+        # Build trainset using a concatenation of windowed variables: [external, home, heating]:
         X = np.hstack([self.create_dataset(temperature_external, how_far_in_future = how_far_in_future),
                        self.create_dataset(temperature_home, how_far_in_future = how_far_in_future),
                        self.create_dataset(heating, how_far_in_future = how_far_in_future)])
@@ -194,6 +199,7 @@ class HeatingOptimizedSchedule(object):
 
                 X = self.create_recent_dataset(my_datetime, how_many=self.limit, how_far_in_future=self.future_steps)
                 # 7) create home temperature vectors to be predicted
+                temperature_home = pd.read_sql_query("select timestamp, home_temperature from temperature_home where timestamp <= '%s' order by timestamp desc limit %d" % (my_datetime, self.limit), self.engine).home_temperature.values
                 tmp = self.window_regression
                 self.window_regression = self.future_steps
                 ys = self.create_dataset(temperature_home, how_far_in_future=0)[tmp:,:]
@@ -215,7 +221,7 @@ class HeatingOptimizedSchedule(object):
             # Transform desire into the desired form:
             desire_vector = self.desiderata.create_vector(desire, my_datetime, self.future_steps, self.time_step, self.T_warning)
             # Create x of my_datetime for prediction:
-            x = self.create_recent_dataset(my_datetime, how_many=1, how_far_in_future=0)
+            x = np.concatenate(self.retrieve_recent_data(ts, self.future_steps))
             # Optimize future heating using regs:
             future_schedule_initial = np.zeros(self.future_steps)
             xopt = fmin_powell(f, x0=future_schedule_initial, args=[desire_vector, self.regs, x], disp=True, full_output=False, maxiter=4, ftol=1.0e-4)
