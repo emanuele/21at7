@@ -160,14 +160,14 @@ class HeatingOptimizedSchedule(object):
 
     def retrieve_recent_data(self, my_datetime, limit):
         # 1) Retrieve external temperature from recent past:
-        temperature_external = pd.read_sql_query("select timestamp, external_temperature from temperature_external where timestamp <= '%s' order by timestamp desc limit %d" % (my_datetime, limit), self.engine).external_temperature.values
+        temperature_external = pd.read_sql_query("select timestamp, external_temperature from temperature_external where timestamp < '%s' order by timestamp desc limit %d" % (my_datetime, limit), self.engine).external_temperature.values[::-1]
         # 2) Retrieve home temperature from recent past:
-        temperature_home = pd.read_sql_query("select timestamp, home_temperature from temperature_home where timestamp <= '%s' order by timestamp desc limit %d" % (my_datetime, limit), self.engine).home_temperature.values
+        temperature_home = pd.read_sql_query("select timestamp, home_temperature from temperature_home where timestamp < '%s' order by timestamp desc limit %d" % (my_datetime, limit), self.engine).home_temperature.values[::-1]
         # 3) Check that records of 1 and 2 approximately match on timestamps.
         # TODO
         assert(len(temperature_home) == len(temperature_external))
         # 4) Retrieve heating schedule from recent past:
-        heating = pd.read_sql_query("select timestamp, heating from heating where timestamp <= '%s' order by timestamp desc limit %d" % (my_datetime, limit), self.engine).heating.values
+        heating = pd.read_sql_query("select timestamp, heating from heating where timestamp < '%s' order by timestamp desc limit %d" % (my_datetime, limit), self.engine).heating.values[::-1]
         # 5) Check that records of 1 and 2 and 4 approximately match on timestamps.
         # TODO
         assert(len(temperature_home) == len(heating))
@@ -213,12 +213,20 @@ class HeatingOptimizedSchedule(object):
             future_schedule_initial = np.zeros(self.future_steps)
             xopt = fmin_powell(f, x0=future_schedule_initial, args=(desire_vector, self.regs, x), disp=True, full_output=False, maxiter=4, ftol=1.0e-4)
             future_schedule_best = np.round(sigmoid(xopt))
+            print("future_schedule_best: %s" % future_schedule_best)
             # Save optimized future heating and predicted home temperature in db:
             # TODO
             # return next heating action from the optimized heating:
+            if self.engine is not None:
+                df = pd.DataFrame({'timestamp': [my_datetime],
+                                   'heating': [future_schedule_best[0]],
+                                   })
+                df.to_sql('heating', self.engine, if_exists='append', index=False)
+
             return future_schedule_best[0]
         else:
             print("Not enough data to train models.")
             raise Exception
 
     
+
