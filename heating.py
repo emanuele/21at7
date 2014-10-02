@@ -58,7 +58,7 @@ def loss_down(delta):
     """This is the cost of having a negative difference (delta) in
     temperature between the predicted and the desired ones.
     """
-    return 10 + -100.0 * delta 
+    return 50 + -100.0 * delta
 
 
 def compute_loss(future_schedule, desiderata, regs, x):
