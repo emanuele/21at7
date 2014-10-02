@@ -58,7 +58,7 @@ def loss_down(delta):
     """This is the cost of having a negative difference (delta) in
     temperature between the predicted and the desired ones.
     """
-    return 10 + -100.0 * delta 
+    return 50 + -100.0 * delta
 
 
 def compute_loss(future_schedule, desiderata, regs, x):
@@ -70,7 +70,7 @@ def compute_loss(future_schedule, desiderata, regs, x):
     xx = np.concatenate([x, np.array(future_schedule)])
     temperature_home_future = np.array([regs[i].predict(xx).squeeze() for i in range(future_steps)])
     delta = temperature_home_future - desiderata
-    weight = np.linspace(1.0, 0.3, future_steps)
+    weight = np.ones(future_steps) # np.linspace(1.0, 0.3, future_steps)
     loss = (((delta > 0) * loss_up(delta) + (delta < 0) * loss_down(delta)) * weight).sum() + np.sum(future_schedule)
     return loss
 
@@ -190,6 +190,7 @@ class HeatingOptimizedSchedule(object):
         if count > self.min_examples:
             training = False
             if (count % self.retrain_every) == 0 or np.any([reg.coef_ is None for reg in self.regs]): # (Re)train models
+                print("(Re)training.")
                 training = True
                 # Training:
                 temperature_external, temperature_home, heating = self.retrieve_recent_data(my_datetime, limit=self.limit)
