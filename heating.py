@@ -70,7 +70,7 @@ def compute_loss(future_schedule, desiderata, regs, x):
     xx = np.concatenate([x, np.array(future_schedule)])
     temperature_home_future = np.array([regs[i].predict(xx).squeeze() for i in range(future_steps)])
     delta = temperature_home_future - desiderata
-    weight = np.linspace(1.0, 0.3, future_steps)
+    weight = np.ones(future_steps) # np.linspace(1.0, 0.3, future_steps)
     loss = (((delta > 0) * loss_up(delta) + (delta < 0) * loss_down(delta)) * weight).sum() + np.sum(future_schedule)
     return loss
 
