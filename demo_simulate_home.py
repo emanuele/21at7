@@ -16,7 +16,7 @@ if __name__ == '__main__':
     print("21at7: simulation of home temperature given external temperature and heating schedule.")
     engine = create_engine(engine_string)
     print("Loading external temperatures from %s" % engine)
-    limit = 100
+    limit = 500
     print("Limiting the records to the first %d." % limit)
     dataset_external_temperature = pd.read_sql_table('temperature_external', engine)[:limit]
     # timestamps = np.array([np.datetime64(ts) for ts in dataset_external_temperature['timestamp'].values])
