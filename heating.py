@@ -190,6 +190,7 @@ class HeatingOptimizedSchedule(object):
         if count > self.min_examples:
             training = False
             if (count % self.retrain_every) == 0 or np.any([reg.coef_ is None for reg in self.regs]): # (Re)train models
+                print("(Re)training.")
                 training = True
                 # Training:
                 temperature_external, temperature_home, heating = self.retrieve_recent_data(my_datetime, limit=self.limit)
