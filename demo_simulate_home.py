@@ -16,7 +16,7 @@ if __name__ == '__main__':
     print("21at7: simulation of home temperature given external temperature and heating schedule.")
     engine = create_engine(engine_string)
     print("Loading external temperatures from %s" % engine)
-    limit = 2000
+    limit = 100
     print("Limiting the records to the first %d." % limit)
     dataset_external_temperature = pd.read_sql_table('temperature_external', engine)[:limit]
     # timestamps = np.array([np.datetime64(ts) for ts in dataset_external_temperature['timestamp'].values])
@@ -84,6 +84,7 @@ if __name__ == '__main__':
         plt.figure()
         plt.plot(timestamps.astype(object), heating * T_heating, 'k-', label='heating')
         plt.plot(timestamps.astype(object), external_temperature, 'r-', label='external')
-        plt.plot(timestamps.astype(object), T_heater, 'g-', label='heater')
+        #plt.plot(timestamps.astype(object), T_heater, 'g-', label='heater')
         plt.plot(timestamps.astype(object), T_home, 'b-', label='home')
         plt.legend()
+        plt.show()

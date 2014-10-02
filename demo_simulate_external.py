@@ -41,3 +41,4 @@ if __name__ == '__main__':
         plt.figure()
         plt.plot(timestamps, external_temperature, 'r-', label='external')
         plt.legend()
+        plt.show()
