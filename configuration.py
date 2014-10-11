@@ -5,12 +5,12 @@ import pytz
 
 # Global parameters for the simulation:
 timezone = pytz.timezone('UTC') # 'Europe/Rome')
-date_start = timezone.localize(datetime(2014, 1, 1, 0, 0, 0, ))
-date_end = timezone.localize(datetime(2014, 12, 31, 23, 59, 59))
+date_start = timezone.localize(datetime(2013, 1, 1, 0, 0, 0, ))
+date_end = timezone.localize(datetime(2013, 12, 31, 23, 59, 59))
 time_step = timedelta(minutes=10)
 
-engine_string = 'sqlite:///21at7.sqlite'
-# engine_string = 'sqlite:////run/21at7/21at7.sqlite'
+# engine_string = 'sqlite:///21at7.sqlite'
+engine_string = 'sqlite:////run/shm/21at7.sqlite'
 
 # Constants for heat transfer:
 k_home_external = 1.0 / 3600.0 / 2.0 # how fast home temperature changes due to external temperature
