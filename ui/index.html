@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+<link href="css/test.css" rel="stylesheet">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"> 
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+<!-- Load the Paper.js library -->
+<script type="text/javascript" src="js/paper-full.js"></script>
+<script type="text/javascript">
+var set_temps1=[12,12,12,12,12,12,12,12,12,12,12,12];
+var set_temps2=[12,12,12,12,12,12,12,12,12,12,12,12];
+</script>
+<script type="text/paperscript" src="pjs/test.pjs" canvas="myCanvas" id="script"></script>
+</head>
+<body>
+	<div id="log" class="temps">...</div>
+	<div id="temps1" class="temps">...</div>
+	<canvas id="myCanvas" width="480" height="280" style="background-color: #ececec;"></canvas>
+	<div id="temps2" class="temps">...</div>
+	<script src="js/zepto.min.js"></script>
+	<script>
+	function maximizeCanvas(){
+		$('#myCanvas').height($(window).height()-50);
+		$('#myCanvas').width($(window).width());
+	}
+	$(function(){
+		maximizeCanvas();
+		$(window).on('resize',maximizeCanvas);
+		get_temps();
+	});
+	var show_temps=function(){
+		setTimeout(function(){
+			$('#temps1').text(set_temps1);
+			$('#temps2').text(set_temps2);
+		},50);
+	}
+	var save_temps=function(){
+		$('#log').load('/set?',{ 'temps1':set_temps1,'temps2':set_temps2 },function(reply){
+			//TODO: check if temps really saved
+		});
+	}
+	var get_temps=function(){
+		$('#log').load('/get',function(reply){
+			loaded_temps=reply.split(',');
+			console.log('loaded_temps.length='+loaded_temps.length);
+			if (loaded_temps.length==24) {
+				set_temps1=loaded_temps.slice(0,12);
+				set_temps2=loaded_temps.slice(12,24);
+				show_temps();
+			}
+		});
+	}
+	</script>
+</body>
+</html>

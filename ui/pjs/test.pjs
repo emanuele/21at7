@@ -1,0 +1,298 @@
+paper.install(set_temps1);
+paper.install(set_temps2);
+paper.install(save_temps);
+paper.install(get_temps);
+get_temps();
+
+linesColor=new Color(0.8,1);
+linesColor2='red';
+circlesColor=new Color(0.5,1);
+textColor1=new Color(0);
+textColor2=new Color(1);
+steps=12;
+slice=360/steps;
+hh1=[];
+hh2=[];
+paths1=[];
+paths2=[];
+temps1=[];
+temps2=[];
+selindex1=-1;
+selpath1=undefined;
+seltemp1=undefined;
+selindex2=-1;
+selpath2=undefined;
+seltemp2=undefined;
+
+center1=view.center-new Point(0,view.size.height/4);
+center2=view.center+new Point(0,view.size.height/4);
+radius=view.size.height/4-20;
+smallradius=radius/5;
+
+mintemp=12;
+temphalfsteps=12*2;
+templen=radius-smallradius;
+temphalfstep=templen/temphalfsteps;
+
+function onResize(event) {
+	view.update();
+}
+
+var mpath;
+tool.distanceThreshold = 10;
+
+
+
+function selpath1_select(idx) {
+	selindex1=idx;
+
+	selpath1=paths1[idx];
+	selpath1.strokeColor=linesColor2;
+	selpath1.bringToFront();
+
+	seltemp1=temps1[idx];
+	seltemp1.bringToFront();
+	seltemp1.strokeColor=linesColor2;
+}
+function selpath1_deselect() {
+	selpath1.strokeColor=linesColor;
+	selpath1=undefined;
+	seltemp1.strokeColor=linesColor;
+	seltemp1=undefined
+
+	selindex1=-1;
+
+	circle1.bringToFront();
+}
+function selpath2_select(idx) {
+	selindex2=idx;
+
+	selpath2=paths2[idx];
+	selpath2.strokeColor=linesColor2;
+	selpath2.bringToFront();
+
+	seltemp2=temps2[idx];
+	seltemp2.bringToFront();
+	seltemp2.strokeColor=linesColor2;
+}
+function selpath2_deselect() {
+	selpath2.strokeColor=linesColor;
+	selpath2=undefined;
+	seltemp2.strokeColor=linesColor;
+	seltemp2=undefined
+
+	selindex2=-1;
+
+	circle2.bringToFront();
+}
+function selpath1_resize(point) {
+	dist=point.getDistance(center1);
+	if (dist>radius) dist=radius;
+	if (dist<smallradius) dist=smallradius;
+	seltemp1.scale(radius/seltemp1.length,center1);
+	seltemp1.scale(dist/radius,center1);
+
+	tempset=new Point(0,(seltemp1.length-smallradius)/temphalfstep);
+	tempset=mintemp+tempset.round().y/2;
+	console.log(tempset);
+	text1.content=tempset;
+	circle1.bringToFront();
+	text1.bringToFront();
+	set_temps1[selindex1]=tempset;
+}
+function selpath2_resize(point) {
+	dist=point.getDistance(center2);
+	if (dist>radius) dist=radius;
+	if (dist<smallradius) dist=smallradius;
+	seltemp2.scale(radius/seltemp2.length,center2);
+	seltemp2.scale(dist/radius,center2);
+
+	tempset=new Point(0,(seltemp2.length-smallradius)/temphalfstep);
+	tempset=mintemp+tempset.round().y/2;
+	console.log(tempset);
+	text2.content=tempset;
+	circle2.bringToFront();
+	text2.bringToFront();
+	set_temps2[selindex2]=tempset;
+}
+
+
+
+function onMouseDown(event) {
+	for (i=0;i<steps;i++) {
+		if (paths1[i].contains(event.point)) {
+			selpath1_select(i);
+			selpath1_resize(event.point);
+		}
+	}
+
+	for (i=0;i<steps;i++) {
+		if (paths2[i].contains(event.point)) {
+			selpath2_select(i);
+			selpath2_resize(event.point);
+		}
+	}
+}
+
+function onMouseUp(event) {
+	if (selpath1) {
+		selpath1_deselect();
+		save_temps();
+	}
+	if (selpath2) {
+		selpath2_deselect();
+		save_temps();
+	}
+}
+
+function onMouseDrag(event) {
+	if (selpath1) {
+		if (selpath1.contains(event.point)) {
+			selpath1_resize(event.point);
+		} else {
+			for (i=0;i<steps;i++) {
+				if (paths1[i].contains(event.point)) {
+					selpath1_deselect();
+					selpath1_select(i);
+					selpath1_resize(event.point);
+				}
+			}
+		}
+  }
+	if (selpath2) {
+		if (selpath2.contains(event.point)) {
+			selpath2_resize(event.point);
+		} else {
+			for (i=0;i<steps;i++) {
+				if (paths2[i].contains(event.point)) {
+					selpath2_deselect();
+					selpath2_select(i);
+					selpath2_resize(event.point);
+				}
+			}
+		}
+  }
+}
+
+
+function temps1_resize(idx) {
+	temp=set_temps1[idx];
+	if (temp>(mintemp+temphalfsteps/2)) temp=mintemp+temphalfsteps/2;
+	if (temp<mintemp) temp=mintemp;
+	console.log('path1_resize('+idx+'): temp='+temp);
+	temps1[idx].scale(radius/smallradius,center1);
+	temps1[idx].scale((smallradius+temphalfstep*((temp-12)*2))/radius,center1);
+}
+function temps2_resize(idx,temp) {
+	temp=set_temps2[idx];
+	if (temp>(mintemp+temphalfsteps/2)) temp=mintemp+temphalfsteps/2;
+	if (temp<mintemp) temp=mintemp;
+	console.log('path2_resize('+idx+'): temp='+temp);
+	temps2[idx].scale(radius/smallradius,center2);
+	temps2[idx].scale((smallradius+temphalfstep*((temp-12)*2))/radius,center2);
+}
+
+paths1[0]=new Path();
+paths1[0].strokeColor = linesColor;
+h1_0=center1 - new Point(0,radius)
+paths1[0].moveTo(h1_0);
+paths1[0].lineBy(0,radius);
+paths1[0].lineTo(h1_0.rotate(slice,center1));
+paths1[0].closePath(false);
+
+temps1[0]=new Path.Line(center1,h1_0.rotate(slice/2,center1));
+temps1[0].strokeColor=linesColor;
+temps1[0].strokeWidth = 20;
+temps1[0].scale(smallradius/radius,center1);
+temps1_resize(0);
+
+hh1[0]=new PointText(h1_0);
+hh1[0].fillColor=textColor1;
+hh1[0].fontSize=smallradius*.5;
+hh1[0].justification='left';
+hh1[0].content=0;
+hh1[0].bringToFront();
+
+
+for (i=1; i<steps; i++) {
+	paths1[i]=paths1[0].clone();
+	paths1[i].rotate(slice*i,center1);
+
+	temps1[i]=new Path.Line(center1,h1_0.rotate(slice*i + slice/2,center1));
+	temps1[i].strokeColor=linesColor;
+	temps1[i].strokeWidth = 20;
+	temps1[i].scale(smallradius/radius,center1);
+	temps1_resize(i);
+
+	hh1[i]=new PointText(h1_0.rotate(slice*i,center1));
+	hh1[i].fillColor=hh1[0].fillColor;
+	hh1[i].fontSize=hh1[0].fontSize;
+	if (i>6) {
+		hh1[i].justification='right';
+	} else {
+		hh1[i].justification='left';
+	}
+	hh1[i].content=i;
+	hh1[i].bringToFront();
+}
+var circle1 = new Path.Circle({ center: center1, radius:smallradius+5 });
+circle1.fillColor=circlesColor;
+var text1=new PointText(center1);
+text1.fillColor=textColor2;
+text1.fontSize=smallradius*.75;
+text1.justification='center';
+text1.content='';
+text1.translate(new Point(0,text1.fontSize/3));
+
+
+paths2[0]=new Path();
+paths2[0].strokeColor = linesColor;
+h2_0=center2 - new Point(0,radius)
+paths2[0].moveTo(h2_0);
+paths2[0].lineBy(0,radius);
+paths2[0].lineTo(h2_0.rotate(slice,center2));
+paths2[0].closePath(false);
+
+temps2[0]=new Path.Line(center2,h2_0.rotate(slice/2,center2));
+temps2[0].strokeColor=linesColor;
+temps2[0].strokeWidth = 20;
+temps2[0].scale(smallradius/radius,center2);
+temps2_resize(0);
+
+hh2[0]=new PointText(h2_0);
+hh2[0].fillColor=textColor1;
+hh2[0].fontSize=smallradius*.5;
+hh2[0].justification='left';
+hh2[0].content=12;
+hh2[0].bringToFront();
+
+
+for (i=1; i<steps; i++) {
+	paths2[i]=paths2[0].clone();
+	paths2[i].rotate(slice*i,center2);
+
+	temps2[i]=new Path.Line(center2,h2_0.rotate(slice*i + slice/2,center2));
+	temps2[i].strokeColor=linesColor;
+	temps2[i].strokeWidth = 20;
+	temps2[i].scale(smallradius/radius,center2);
+	temps2_resize(i);
+
+	hh2[i]=new PointText(h2_0.rotate(slice*i,center2));
+	hh2[i].fillColor=hh2[0].fillColor;
+	hh2[i].fontSize=hh2[0].fontSize;
+	if (i>6) {
+		hh2[i].justification='right';
+	} else {
+		hh2[i].justification='left';
+	}
+	hh2[i].content=12+i;
+	hh2[i].bringToFront();
+}
+var circle2 = new Path.Circle({ center: center2, radius:smallradius+5 });
+circle2.fillColor=circlesColor;
+var text2=new PointText(center2);
+text2.fillColor=textColor2;
+text2.fontSize=smallradius*.75;
+text2.justification='center';
+text2.content='';
+text2.translate(new Point(0,text2.fontSize/3));
