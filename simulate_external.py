@@ -59,6 +59,8 @@ def simulate_external_temperature(timestamps, time_step=None, year_min_min=-5.0,
     noise_sigma : float
         amplitude of the autocorrelated noise in the simulation
     """
+    date_daily_max_max = date_daily_max_max.replace(year=timestamps[0].year)
+    date_seasonal_max_max = date_seasonal_max_max.replace(year=timestamps[0].year)
     if time_step is None: time_step = timedelta(seconds = np.mean([dts.seconds for dts in np.diff(timestamps)]))
     date_daily_max_max = timezone.localize(date_daily_max_max)
     date_seasonal_max_max = timezone.localize(date_seasonal_max_max)
