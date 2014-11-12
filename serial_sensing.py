@@ -12,7 +12,7 @@ if __name__ == '__main__':
 
 
 	if len(serials)!=1:
-		print 'select one od these devices:'
+		print 'select one of these devices:'
 		for serName in serials: print '  -', serName
 
 	else:
