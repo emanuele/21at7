@@ -1,55 +1,52 @@
-import glob,datetime,sys,serial
+import datetime,serial,threading
 
 from models import Session,Reading
 
 
-class Reader:
-	def __init__(self, serName):
+class Reader(threading.Thread):
+	def __init__(self, dbUrl, serName):
+		super(Reader,self).__init__()
+		self.setDaemon(True)
+
+		self.name=__name__.split('.',1)[1]
+
+		self.dbUrl=dbUrl
+		self.Session=Session(dbUrl)
+
+		self.serName=serName
 		self.ser = serial.Serial(serName,57600,timeout=2)
 		self.active=True
+		
+		self.log('initialized serial %s'%serName)
 
-		while serActive and ser.isOpen():
+	def log(self,msg):
+		print '[%s] %s'%(__name__, msg)
+
+	def run(self):
+		self.log('reader started.')
+
+		while self.active and self.ser.isOpen():
 			try:
-				msg=ser.readline()
+				msg=self.ser.readline()
 				if msg:
 					msg=msg.strip()
-					print 'msg:', msg
+					self.log('msg: %s'%msg)
 					if msg.startswith('D:'):
-						session = Session()
-						session.add(Reading(id=datetime.datetime.now(),data=msg))
+						session = self.Session.get_session()
+						session.add(Reading(id=datetime.datetime.now(),type=self.name,data=msg))
 						session.commit()
 					else:
-						print '*** unknown msg ***'
+						self.log('*** unknown msg ***')
 				#else:
-				#	print 'no msg...'
+				#	self.log('no msg...')
 			except KeyboardInterrupt:	
-				ser.close()
+				self.ser.close()
 			except:
 				print 'ERROR!'
-				serActive=False
-
+				self.active=False
 		try:
-			if ser and ser.isOpen(): ser.close()
+			if self.ser and self.ser.isOpen(): self.ser.close()
 		except:
-			print 'serial close error'
+			self.log('serial close error')
 
-
-if __name__ == '__main__':
-	if len(sys.argv) < 2:
-		serials=glob.glob('/dev/ttyUSB*') + glob.glob('/dev/tty.usbserial-*')
-	else:
-		serials=[ sys.argv[1] ]
-
-
-	if len(serials)==0:
-		print 'no supported serial device found among tty devices:'
-		for serName in glob.glob('/dev/tty*'): print '  -', serName
-
-	elif len(serials)!=1:
-		print 'select one of these devices:'
-		for serName in serials: print '  -', serName
-
-	else:
-		print 'serial name:', serials[0]
-		reader=Reader(serials[0])
-		print 'serial DONE.'
+		self.log('reader ended!')
