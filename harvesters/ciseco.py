@@ -123,7 +123,7 @@ class Cleaner(threading.Thread):
 			try:
 				session = self.session_maker.get_session()
 				readings=session.query(Reading)
-				if readings.count>0:
+				if readings.count()>0:
 					for reading in readings.order_by(Reading.id).limit(10):
 						#log(self,reading.id)
 						if reading.data and len(reading.data)==11:
