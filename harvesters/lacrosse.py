@@ -19,7 +19,7 @@ class Reader(threading.Thread):
 		self.class_name=self.__class__.__name__
 
 		self.dbUrl=dbUrl
-		self.session_maker=SessionMaker(dbUrl)
+		self.session_maker=SessionMaker(dbUrl,debug=self.debug)
 
 		self.serName=serName
 		self.ser = serial.Serial(serName,57600,timeout=2)
@@ -86,7 +86,7 @@ class Cleaner(threading.Thread):
 		self.class_name=self.__class__.__name__
 
 		self.dbUrl=dbUrl
-		self.session_maker=SessionMaker(dbUrl)
+		self.session_maker=SessionMaker(dbUrl,debug=self.debug)
 
 		self.sensors={}
 		session = self.session_maker.get_session()
