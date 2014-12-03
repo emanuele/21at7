@@ -77,11 +77,11 @@ if __name__ == '__main__':
 
 			test_runner=TestRunner()
 			if lacrosse_serial:
-				lacrosse_reader=lacrosse.Reader(mainDB,lacrosse_serial,debug=True)
-				lacrosse_cleaner=lacrosse.Cleaner(mainDB,debug=True)
+				lacrosse_reader=lacrosse.Reader(mainDB,lacrosse_serial,debug=True,dbdebug=False)
+				lacrosse_cleaner=lacrosse.Cleaner(mainDB,debug=True,dbdebug=False)
 			if ciseco_serial:
-				ciseco_reader=ciseco.Reader(mainDB,ciseco_serial,debug=True)
-				ciseco_cleaner=ciseco.Cleaner(mainDB,debug=True)
+				ciseco_reader=ciseco.Reader(mainDB,ciseco_serial,debug=True,dbdebug=False)
+				ciseco_cleaner=ciseco.Cleaner(mainDB,debug=True,dbdebug=False)
 
 			test_runner.start()
 			if lacrosse_serial:
