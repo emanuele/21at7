@@ -1,7 +1,8 @@
-import glob,sys,time,threading
+import glob,sys,time,threading,getopt
 
 from models import SessionMaker,Sensor
 from harvesters import *
+
 
 class TestRunner(threading.Thread):
 	def __init__(self):
@@ -13,17 +14,36 @@ class TestRunner(threading.Thread):
 		time.sleep(10)
 		print 'TESTS ENDED'
 
+
 if __name__ == '__main__':
-	if len(sys.argv) < 2:
-		serials=glob.glob('/dev/ttyUSB*') + glob.glob('/dev/tty.usbserial-*')
-	else:
-		serials=[ sys.argv[1] ]
-	if len(serials)==1:
+	mainDB='sqlite:///21at7.sqlite'
+	lacrosse_serial=None
+	ciseco_serial=None
 
-		mainDB='sqlite:///21at7.sqlite'
+	try:                                
+		opts, args = getopt.getopt(sys.argv[1:], "dlc", ["db=", "lacrosse=", "ciseco="])
 
+		for opt, arg in opts:
+			if opt in ("-d", "--db"):
+				mainDB=arg
+			elif opt in ("-l", "--lacrosse"):
+				lacrosse_serial=arg
+			elif opt in ("-c", "--ciseco"):
+				ciseco_serial=arg
+
+		other = " ".join(args)
+
+	except getopt.GetoptError:
+		print sys.argv[0], '--db SQLALCHEMY_DBURL --lacrosse=SERNAME', '--ciseco=SERNAME'
+		if len(sys.argv)==1:
+			print 'SERNAME can be one of these:'
+			for serName in glob.glob('/dev/ttyUSB*') + glob.glob('/dev/tty.usbserial-*'):
+				print '  -', serName
+
+	if lacrosse_serial or ciseco_serial:
 		sensors=None
-		session_maker=SessionMaker(mainDB)
+
+		session_maker=SessionMaker(mainDB,debug=True)
 		session = session_maker.get_session()
 		try:
 			sensors=session.query(Sensor).filter_by(harvester='lacrosse')
@@ -34,6 +54,12 @@ if __name__ == '__main__':
 				session.add(lacrosse2)
 				session.commit()
 				print 'created lacrosse test sensors'
+			sensors=session.query(Sensor).filter_by(harvester='ciseco')
+			if sensors.count()==0:
+				ciseco1 = Sensor(harvester='ciseco',desc='ufficio',address='H0')
+				session.add(ciseco1)
+				session.commit()
+				print 'created ciseco test sensor'
 		except:
 			e = sys.exc_info()[0]
 			print 'sensors query error: %s'%e
@@ -44,25 +70,32 @@ if __name__ == '__main__':
 			except:
 				log(self,'db (sensor) session close error')
 
-		if sensors:
+		if sensors and sensors.count()>0:
 			print 'registered sensors:'
 			for sensor in sensors.all():
-				print ' - sensor: %s'%sensor.address
+				print '  - sensor: %s'%sensor.address
 
-			reader=lacrosse.Reader(mainDB,serials[0],debug=True)
-			cleaner=lacrosse.Cleaner(mainDB,debug=True)
+			test_runner=TestRunner()
+			if lacrosse_serial:
+				lacrosse_reader=lacrosse.Reader(mainDB,lacrosse_serial,debug=True)
+				lacrosse_cleaner=lacrosse.Cleaner(mainDB,debug=True)
+			if ciseco_serial:
+				ciseco_reader=ciseco.Reader(mainDB,ciseco_serial,debug=True)
+				ciseco_cleaner=ciseco.Cleaner(mainDB,debug=True)
 
-			runner=TestRunner()
-			runner.start()
+			test_runner.start()
+			if lacrosse_serial:
+				lacrosse_reader.start()
+				lacrosse_cleaner.start()
+			if ciseco_serial:
+				ciseco_reader.start()
+				ciseco_cleaner.start()
 
-			reader.start()
-			cleaner.start()
 		else:
 			print 'no sensors configured: exiting...'
-
-	elif len(serials)==0:
-		print 'looks like no supported tty serial device is available among these:'
-		for serName in glob.glob('/dev/tty*'): print '  -', serName
 	else:
-		print 'select one of these devices:'
-		for serName in serials: print '  -', serName
+		print sys.argv[0], '--db SQLALCHEMY_DBURL --lacrosse=SERNAME', '--ciseco=SERNAME'
+		if len(sys.argv)==1:
+			print 'SERNAME can be one of these:'
+			for serName in glob.glob('/dev/ttyUSB*') + glob.glob('/dev/tty.usbserial-*'):
+				print '  -', serName
