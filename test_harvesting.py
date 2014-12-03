@@ -43,7 +43,7 @@ if __name__ == '__main__':
 	if lacrosse_serial or ciseco_serial:
 		sensors=None
 
-		session_maker=SessionMaker(mainDB,debug=True)
+		session_maker=SessionMaker(mainDB,debug=False)
 		session = session_maker.get_session()
 		try:
 			sensors=session.query(Sensor).filter_by(harvester='lacrosse')

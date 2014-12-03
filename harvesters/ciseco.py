@@ -9,7 +9,7 @@ def log(instance,msg):
 
 
 class Reader(threading.Thread):
-	def __init__(self, dbUrl, serName, debug=False):
+	def __init__(self, dbUrl, serName, debug=False, dbdebug=False):
 		super(Reader,self).__init__()
 		self.setDaemon(True)
 		self.active=False
@@ -19,7 +19,7 @@ class Reader(threading.Thread):
 		self.class_name=self.__class__.__name__
 
 		self.dbUrl=dbUrl
-		self.session_maker=SessionMaker(dbUrl,debug=self.debug)
+		self.session_maker=SessionMaker(dbUrl,debug=dbdebug)
 
 		self.serName=serName
 		self.ser = serial.Serial(serName,9600,timeout=2)
@@ -82,7 +82,7 @@ class Reader(threading.Thread):
 
 
 class Cleaner(threading.Thread):
-	def __init__(self, dbUrl, debug=False):
+	def __init__(self, dbUrl, debug=False, dbdebug=False):
 		super(Cleaner,self).__init__()
 		self.setDaemon(True)
 		self.active=False
@@ -92,7 +92,7 @@ class Cleaner(threading.Thread):
 		self.class_name=self.__class__.__name__
 
 		self.dbUrl=dbUrl
-		self.session_maker=SessionMaker(dbUrl,debug=self.debug)
+		self.session_maker=SessionMaker(dbUrl,debug=dbdebug)
 
 		self.sensors={}
 		session = self.session_maker.get_session()
