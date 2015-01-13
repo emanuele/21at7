@@ -49,7 +49,7 @@ if __name__ == '__main__':
 			sensors=session.query(Sensor).filter_by(harvester='lacrosse')
 			if sensors.count()==0:
 				lacrosse1 = Sensor(harvester='lacrosse',desc='ufficio',address='50')
-				lacrosse2 = Sensor(harvester='lacrosse',desc='esterno',address='A8')
+				lacrosse2 = Sensor(harvester='lacrosse',desc='esterno',address='98')
 				session.add(lacrosse1)
 				session.add(lacrosse2)
 				session.commit()
