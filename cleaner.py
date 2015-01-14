@@ -31,24 +31,20 @@ class Cleaner(Daemon):
 
 
 if __name__ == '__main__':
-	if lacrosse_serial or ciseco_serial:
-		pid=os.path.join(os.getcwd(),'21at7_cleaner.pid')
-		logfile=os.path.join(logdir,'21at7_cleaner.log')
-		daemon=Cleaner(pid,stdout=logfile,stderr=logfile)
-		if len(sys.argv) == 2:
-			if 'start' == sys.argv[1]:
-				daemon.start()
-			elif 'stop' == sys.argv[1]:
-				daemon.stop()
-			elif 'restart' == sys.argv[1]:
-				daemon.restart()
-			else:
-				print "Unknown command"
-				sys.exit(2)
-			sys.exit(0)
+	pid=os.path.join(os.getcwd(),'21at7_cleaner.pid')
+	logfile=os.path.join(logdir,'21at7_cleaner.log')
+	daemon=Cleaner(pid,stdout=logfile,stderr=logfile)
+	if len(sys.argv) == 2:
+		if 'start' == sys.argv[1]:
+			daemon.start()
+		elif 'stop' == sys.argv[1]:
+			daemon.stop()
+		elif 'restart' == sys.argv[1]:
+			daemon.restart()
 		else:
-			print "usage: %s start|stop|restart" % sys.argv[0]
+			print "Unknown command"
 			sys.exit(2)
+		sys.exit(0)
 	else:
-		print 'no sensors configured: exiting...'
-		sys.exit(1)
+		print "usage: %s start|stop|restart" % sys.argv[0]
+		sys.exit(2)
