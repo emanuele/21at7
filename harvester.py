@@ -1,6 +1,6 @@
-import glob,sys,time,threading,getopt
+import glob,sys,time,threading,getopt,os
 
-from config import mainDB,lacrosse_serial,ciseco_serial
+from config import mainDB,lacrosse_serial,ciseco_serial,logdir
 from models import SessionMaker,Sensor
 from harvesters import *
 from daemon import Daemon
@@ -36,7 +36,9 @@ class Harvester(Daemon):
 
 if __name__ == '__main__':
 	if lacrosse_serial or ciseco_serial:
-		daemon=Harvester('/tmp/21at7-harvester.pid',stdout='/tmp/21at7-harvester.log',stderr='/tmp/21at7-harvester.log')
+		pid=os.path.join(os.getcwd(),'21at7_harvester.pid')
+		logfile=os.path.join(logdir,'21at7_harvester.log')
+		daemon=Harvester(pid,stdout=logfile,stderr=logfile)
 		if len(sys.argv) == 2:
 			if 'start' == sys.argv[1]:
 				daemon.start()
