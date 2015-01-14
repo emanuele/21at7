@@ -34,7 +34,7 @@ if __name__ == '__main__':
 		other = " ".join(args)
 
 	except getopt.GetoptError:
-		print sys.argv[0], '--db SQLALCHEMY_DBURL --lacrosse=SERNAME', '--ciseco=SERNAME'
+		print sys.argv[0], '--db SQLALCHEMY_DBURL', '--lacrosse=SERNAME', '--ciseco=SERNAME'
 		if len(sys.argv)==1:
 			print 'SERNAME can be one of these:'
 			for serName in glob.glob('/dev/ttyUSB*') + glob.glob('/dev/tty.usbserial-*'):
@@ -63,11 +63,12 @@ if __name__ == '__main__':
 		except:
 			e = sys.exc_info()[0]
 			print 'sensors query error: %s'%e
-			sensors=None
 		finally:
+			sensors=session.query(Sensor)
 			try:
 				session.close()
 			except:
+				sensors=None
 				log(self,'db (sensor) session close error')
 
 		if sensors and sensors.count()>0:

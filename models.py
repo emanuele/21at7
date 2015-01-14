@@ -40,7 +40,7 @@ class Measure(Base):
 	sensor_id = Column(Integer, ForeignKey('sensors.id'))
 	when = Column(DateTime,index=True)
 	what = Column(String,index=True)
-	howmuch = Column(String,index=True)
+	howmuch = Column(Float(precision=1),index=True)
 
 class Schedule(Base):
 	__tablename__ = 'schedules'
