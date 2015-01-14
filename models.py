@@ -1,7 +1,7 @@
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship, backref
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Date, Time, Float
 from sqlalchemy.pool import NullPool, QueuePool
 
 
@@ -41,3 +41,14 @@ class Measure(Base):
 	when = Column(DateTime,index=True)
 	what = Column(String,index=True)
 	howmuch = Column(String,index=True)
+
+class Schedule(Base):
+	__tablename__ = 'schedules'
+	extend_existing=True
+	id = Column(Integer, primary_key=True)
+	what = Column(String,index=True)
+	day = Column(Integer,index=True)
+	date = Column(Date,index=True)
+	howmuch = Column(Float(precision=1),index=True)
+	start = Column(Time,index=True)
+	stop = Column(Time,index=True)
