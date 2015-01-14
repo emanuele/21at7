@@ -1,5 +1,6 @@
 import glob,sys,time,threading,getopt
 
+from config import mainDB,lacrosse_serial,ciseco_serial
 from models import SessionMaker,Sensor
 from harvesters import *
 
@@ -16,10 +17,6 @@ class TestRunner(threading.Thread):
 
 
 if __name__ == '__main__':
-	mainDB='sqlite:///21at7.sqlite'
-	lacrosse_serial=None
-	ciseco_serial=None
-
 	try:                                
 		opts, args = getopt.getopt(sys.argv[1:], "dlc", ["db=", "lacrosse=", "ciseco="])
 

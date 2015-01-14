@@ -1,12 +1,11 @@
 import sys,datetime,getopt
 
+from config import mainDB,lacrosse_serial,ciseco_serial
 from models import SessionMaker,Schedule
 import scheduler
 
 
 if __name__ == '__main__':
-	mainDB='sqlite:///21at7.sqlite'
-
 	try:                                
 		opts, args = getopt.getopt(sys.argv[1:], "d", ["db="])
 
