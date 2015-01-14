@@ -49,8 +49,8 @@ class Reader(threading.Thread):
 						session.add(Reading(id=datetime.datetime.now(),harvester=self.module_name,data=addr+msg))
 						session.commit()
 						self.ser.write('a%sSLEEP003S'%addr)
-					#else:
-					#	log(self,'unknown msg: %s'%msg)
+					else:
+						log(self,'unknown msg: %s'%msg)
 				#else:
 				#	log(self,'no msg...')
 				self.error_count=0

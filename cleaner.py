@@ -9,14 +9,14 @@ from daemon import Daemon
 class Cleaner(Daemon):
 	def run(self):
 		if lacrosse_serial:
-			self.lacrosse_cleaner=lacrosse.Cleaner(mainDB,debug=True,dbdebug=False)
+			self.lacrosse_cleaner=lacrosse.Cleaner(mainDB,debug=False,dbdebug=False)
 			self.lacrosse_cleaner.start()
 		else:
 			sys.stderr.write('no lacrosse sensors')
 			sys.stderr.flush()
 
 		if ciseco_serial:
-			self.ciseco_cleaner=ciseco.Cleaner(mainDB,debug=True,dbdebug=False)
+			self.ciseco_cleaner=ciseco.Cleaner(mainDB,debug=False,dbdebug=False)
 			self.ciseco_cleaner.start()
 		else:
 			sys.stderr.write('no ciseco sensors\n')

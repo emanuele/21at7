@@ -39,12 +39,12 @@ class Reader(threading.Thread):
 				if msg:
 					msg=msg.strip(' \t\n\r').replace('  ',' ')
 					if msg.startswith('D:'):
-						#log(self,'msg: %s'%msg)
+						log(self,'msg: %s'%msg)
 						session = self.session_maker.get_session()
 						session.add(Reading(id=datetime.datetime.now(),harvester=self.module_name,data=msg))
 						session.commit()
-					#else:
-					#	log(self,'unknown msg: %s'%msg)
+					else:
+						log(self,'unknown msg: %s'%msg)
 				#else:
 				#	log(self,'no msg...')
 				self.error_count=0
