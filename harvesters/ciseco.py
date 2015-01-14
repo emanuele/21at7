@@ -6,8 +6,8 @@ from models import SessionMaker,Reading,Sensor,Measure
 
 def log(instance,msg):
 	if instance.debug:
-		sys.stderr.write('[%s.%s] %s\n'%(instance.module_name, instance.class_name, msg))
-		sys.stderr.flush()
+		sys.stderr.write('[%s.%s] %s %s\n'%(instance.module_name, instance.class_name, time.strftime("%Y-%m-%d %H:%M"), msg))
+		#sys.stderr.flush()
 
 
 class Reader(threading.Thread):
@@ -123,7 +123,7 @@ class Cleaner(threading.Thread):
 				session = self.session_maker.get_session()
 				readings=session.query(Reading)
 				if readings.count()>0:
-					for reading in readings.order_by(Reading.id).limit(10):
+					for reading in readings.order_by(Reading.id).limit(100):
 						#log(self,reading.id)
 						if reading.data and len(reading.data)==11:
 							sensor_address=reading.data[:2]
@@ -147,8 +147,8 @@ class Cleaner(threading.Thread):
 							session.commit()
 					time.sleep(.1)
 				else:
-					log(self,'nothing to clean: will have a little longer nap...')
-					time.sleep(2)
+					#log(self,'nothing to clean: will have a little longer nap...')
+					time.sleep(1)
 				self.error_count=0
 			except:
 				e = sys.exc_info()[0]
