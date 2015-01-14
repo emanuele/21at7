@@ -5,7 +5,10 @@ from models import SessionMaker,Reading,Sensor,Measure
 
 
 def log(instance,msg):
-	if instance.debug: print '[%s.%s] %s'%(instance.module_name, instance.class_name, msg)
+	if instance.debug:
+		#print '[%s.%s] %s'%(instance.module_name, instance.class_name, msg)
+		sys.stderr.write('[%s.%s] %s\n'%(instance.module_name, instance.class_name, msg))
+		sys.stderr.flush()
 
 
 class Reader(threading.Thread):
@@ -25,9 +28,6 @@ class Reader(threading.Thread):
 		self.ser = serial.Serial(serName,9600,timeout=2)
 		
 		log(self,'initialized with serial %s'%serName)
-
-	def log(self,msg):
-		print '[%s] %s'%(__name__, msg)
 
 	def run(self):
 		log(self,'started.')
