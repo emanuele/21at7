@@ -4,7 +4,7 @@ from bottle import route, run, template, static_file, redirect, request
 
 @route('/static/<filename:path>')
 def send_static(filename):
-	return static_file(filename, root='ui')
+	return static_file(filename, root='webui-assets')
 
 @route('/')
 def home():
