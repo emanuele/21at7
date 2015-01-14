@@ -10,7 +10,7 @@ def log(msg):
 	sys.stderr.write('[CLEANER] %s %s\n'%(time.strftime("%Y-%m-%d %H:%M:%S"), msg))
 
 
-class Cleaner(Daemon):
+class Controller(Daemon):
 	def run(self):
 		if lacrosse_serial:
 			self.lacrosse_cleaner=lacrosse.Cleaner(mainDB,debug=False,dbdebug=False)
@@ -24,16 +24,16 @@ class Cleaner(Daemon):
 		else:
 			log('no ciseco sensors')
 
-		log('CLEANING STARTED')
+		log('CONTROLLER STARTED')
 		while True:
 			time.sleep(1)
-		log('CLEANING ENDED')
+		log('CONTROLLER ENDED')
 
 
 if __name__ == '__main__':
-	pid=os.path.join(os.getcwd(),'21at7_cleaner.pid')
-	logfile=os.path.join(logdir,'21at7_cleaner.log')
-	daemon=Cleaner(pid,stdout=logfile,stderr=logfile)
+	pid=os.path.join(os.getcwd(),'21at7_controller.pid')
+	logfile=os.path.join(logdir,'21at7_controller.log')
+	daemon=Controller(pid,stdout=logfile,stderr=logfile)
 	if len(sys.argv) == 2:
 		if 'start' == sys.argv[1]:
 			daemon.start()
