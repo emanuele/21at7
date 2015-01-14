@@ -6,7 +6,7 @@ from models import SessionMaker,Reading,Sensor,Measure
 
 def log(instance,msg):
 	if instance.debug:
-		sys.stderr.write('[%s.%s] %s %s\n'%(instance.module_name, instance.class_name, time.strftime("%Y-%m-%d %H:%M"), msg))
+		sys.stderr.write('[%s.%s] %s %s\n'%(instance.module_name, instance.class_name, time.strftime("%Y-%m-%d %H:%M:%S"), msg))
 		#sys.stderr.flush()
 
 

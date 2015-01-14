@@ -6,28 +6,28 @@ from harvesters import *
 from daemon import Daemon
 
 
+def log(msg):
+	sys.stderr.write('[CLEANER] %s %s\n'%(time.strftime("%Y-%m-%d %H:%M:%S"), msg))
+
+
 class Cleaner(Daemon):
 	def run(self):
 		if lacrosse_serial:
 			self.lacrosse_cleaner=lacrosse.Cleaner(mainDB,debug=False,dbdebug=False)
 			self.lacrosse_cleaner.start()
 		else:
-			sys.stderr.write('no lacrosse sensors')
-			sys.stderr.flush()
+			log('no lacrosse sensors')
 
 		if ciseco_serial:
 			self.ciseco_cleaner=ciseco.Cleaner(mainDB,debug=False,dbdebug=False)
 			self.ciseco_cleaner.start()
 		else:
-			sys.stderr.write('no ciseco sensors\n')
-			sys.stderr.flush()
+			log('no ciseco sensors')
 
-		sys.stderr.write('CLEANING STARTED\n')
-		sys.stderr.flush()
+		log('CLEANING STARTED')
 		while True:
 			time.sleep(1)
-		sys.stderr.write('CLEANING ENDED\n')
-		sys.stderr.flush()
+		log('CLEANING ENDED')
 
 
 if __name__ == '__main__':

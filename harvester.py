@@ -6,24 +6,28 @@ from harvesters import *
 from daemon import Daemon
 
 
+def log(msg):
+	sys.stderr.write('[HARVESTER] %s %s\n'%(time.strftime("%Y-%m-%d %H:%M:%S"), msg))
+
+
 class Harvester(Daemon):
 	def run(self):
 		if lacrosse_serial:
 			self.lacrosse_reader=lacrosse.Reader(mainDB,lacrosse_serial,debug=False,dbdebug=False)
 			self.lacrosse_reader.start()
 		else:
-			sys.stderr.write('no lacrosse sensors')
+			log('no lacrosse sensors')
 
 		if ciseco_serial:
 			self.ciseco_reader=ciseco.Reader(mainDB,ciseco_serial,debug=False,dbdebug=False)
 			self.ciseco_reader.start()
 		else:
-			sys.stderr.write('no ciseco sensors\n')
+			log('no ciseco sensors')
 
-		sys.stderr.write('HARVESTING STARTED\n')
+		log('HARVESTING STARTED')
 		while True:
 			time.sleep(1)
-		sys.stderr.write('HARVESTING ENDED\n')
+		log('HARVESTING ENDED')
 
 
 if __name__ == '__main__':
@@ -47,4 +51,4 @@ if __name__ == '__main__':
 			sys.exit(2)
 	else:
 		print 'no sensors configured: exiting...'
-		sys.exit(1)
+		sys.exit(3)
