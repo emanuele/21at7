@@ -1,7 +1,7 @@
-import glob,sys,time,threading,getopt
+import glob,sys,time,threading,getopt,traceback
 
 from config import mainDB,lacrosse_serial,ciseco_serial
-from models import SessionMaker,Sensor
+from models import SessionMaker,Sensor,Zone
 from harvesters import *
 
 
@@ -43,23 +43,32 @@ if __name__ == '__main__':
 		session_maker=SessionMaker(mainDB,debug=False)
 		session = session_maker.get_session()
 		try:
+			zones=session.query(Zone)
+			if zones.count()==0:
+				zone1 = Zone(desc='ufficio')
+				session.add(zone1)
+				zones=session.query(Zone)
+			zone1=zones.first()
+			print 'zone:',zone1
+
 			sensors=session.query(Sensor).filter_by(harvester='lacrosse')
 			if sensors.count()==0:
-				lacrosse1 = Sensor(harvester='lacrosse',desc='ufficio',address='50')
-				lacrosse2 = Sensor(harvester='lacrosse',desc='esterno',address='98')
+				lacrosse1 = Sensor(zone_id=zone1.id,harvester='lacrosse',desc='ufficio',address='50')
+				lacrosse2 = Sensor(zone_id=zone1.id,harvester='lacrosse',desc='esterno',address='98')
 				session.add(lacrosse1)
 				session.add(lacrosse2)
 				session.commit()
 				print 'created lacrosse test sensors'
 			sensors=session.query(Sensor).filter_by(harvester='ciseco')
 			if sensors.count()==0:
-				ciseco1 = Sensor(harvester='ciseco',desc='ufficio',address='H0')
+				ciseco1 = Sensor(zone_id=zone1.id,harvester='ciseco',desc='ufficio',address='H0')
 				session.add(ciseco1)
 				session.commit()
 				print 'created ciseco test sensor'
 		except:
 			e = sys.exc_info()[0]
 			print 'sensors query error: %s'%e
+			traceback.print_exc()
 		finally:
 			sensors=session.query(Sensor)
 			try:

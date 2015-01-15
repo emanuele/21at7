@@ -17,14 +17,22 @@ class SessionMaker:
 		return self.maker()
 
 
+class Zone(Base):
+	__tablename__ = 'zones'
+	extend_existing=True
+	id = Column(Integer, primary_key=True)
+	desc = Column(String)
+	sensors = relationship("Sensor", order_by="Sensor.id", backref="zone")
+
 class Sensor(Base):
 	__tablename__ = 'sensors'
 	extend_existing=True
 	id = Column(Integer, primary_key=True)
+	zone_id = Column(Integer, ForeignKey('zones.id'))
 	harvester = Column(String)
 	desc = Column(String)
 	address = Column(String)
-	measurements = relationship("Measure", backref="who")
+	measurements = relationship("Measure", order_by="Measure.when.desc()", backref="sensor")
 
 class Reading(Base):
 	__tablename__ = 'readings'
@@ -46,6 +54,8 @@ class Schedule(Base):
 	__tablename__ = 'schedules'
 	extend_existing=True
 	id = Column(Integer, primary_key=True)
+	zone_id = Column(Integer, ForeignKey('zones.id'))
+	zone = relationship("Zone", backref="schedules")
 	what = Column(String,index=True)
 	day = Column(Integer,index=True)
 	date = Column(Date,index=True)
