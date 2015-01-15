@@ -36,7 +36,7 @@ class Controller(Daemon):
 			try:
 				session = self.session_maker.get_session()
 				zones=session.query(Zone)
-				for zone in zones.all():
+				for zone in zones.filter(Zone.desc!='outside'):
 					#log('zone id: %d'%(zone.id))
 					desired=self.scheduler.desired(zone_id=zone.id)
 					#log('desired temp in "%s": %.1f'%(zone.desc,desired))

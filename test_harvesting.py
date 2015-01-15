@@ -45,23 +45,27 @@ if __name__ == '__main__':
 		try:
 			zones=session.query(Zone)
 			if zones.count()==0:
-				zone1 = Zone(desc='ufficio')
+				zone1 = Zone(desc='inside')
 				session.add(zone1)
+				zone2 = Zone(desc='outside')
+				session.add(zone2)
 				zones=session.query(Zone)
-			zone1=zones.first()
-			print 'zone:',zone1
+			zone1=zones.filter_by(desc='inside').first()
+			zone2=zones.filter_by(desc='outside').first()
+			print 'zone #1:',zone1
+			print 'zone #2:',zone2
 
 			sensors=session.query(Sensor).filter_by(harvester='lacrosse')
 			if sensors.count()==0:
-				lacrosse1 = Sensor(zone_id=zone1.id,harvester='lacrosse',desc='ufficio',address='50')
-				lacrosse2 = Sensor(zone_id=zone1.id,harvester='lacrosse',desc='esterno',address='98')
+				lacrosse1 = Sensor(zone_id=zone1.id,harvester='lacrosse',desc='office',address='50')
+				lacrosse2 = Sensor(zone_id=zone2.id,harvester='lacrosse',desc='outside',address='98')
 				session.add(lacrosse1)
 				session.add(lacrosse2)
 				session.commit()
 				print 'created lacrosse test sensors'
 			sensors=session.query(Sensor).filter_by(harvester='ciseco')
 			if sensors.count()==0:
-				ciseco1 = Sensor(zone_id=zone1.id,harvester='ciseco',desc='ufficio',address='H0')
+				ciseco1 = Sensor(zone_id=zone1.id,harvester='ciseco',desc='home',address='H0')
 				session.add(ciseco1)
 				session.commit()
 				print 'created ciseco test sensor'

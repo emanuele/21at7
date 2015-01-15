@@ -22,7 +22,7 @@ if __name__ == '__main__':
 	try:
 		zones=session.query(Zone)
 		if zones.count()==0:
-			zone1 = Zone(desc='ufficio')
+			zone1 = Zone(desc='inside')
 			session.add(zone1)
 			zones=session.query(Zone)
 		zone1=zones.first()
