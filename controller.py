@@ -40,14 +40,20 @@ class Controller(Daemon):
 					#log('zone id: %d'%(zone.id))
 					desired=self.scheduler.desired(zone_id=zone.id)
 					#log('desired temp in "%s": %.1f'%(zone.desc,desired))
+					sensors=session.query(Sensor).filter(Sensor.zone_id==zone.id)
 					min=None
 					for sensor in zone.sensors:
-						#log('sensor: %s'%sensor.desc)
+						log('sensor %s in %s'%(sensor.desc,zone.desc))
+					'''
 						for measure in sensor.measurements:
 							if measure.what=='temp':
 								#log('%s: %.1f'%(measure.what,measure.howmuch))
 								if min==None or measure.howmuch<min:
 									min=measure.howmuch
+					'''
+					#measurements=session.query(Measure).filter(Measure.what='temp',Measure.sensor.in(sensors.subquery()))
+					#for measure in measurements:
+					#	log('%s: %.1f'%(measure.what,measure.howmuch))
 					if min: 
 						log('min: %.1f'%min)
 						if min<(desired-0.5):
